@@ -1,0 +1,581 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+ "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <meta http-equiv="Content-Style-Type" content="text/css" />
+  <meta name="generator" content="pandoc" />
+  <meta name="author" content="Kris Nuttycombe (@nuttycom) - April, 2020" />
+  <title>Parametricity, And The State Space of Programs</title>
+  <style type="text/css">
+    code{white-space: pre-wrap;}
+    span.smallcaps{font-variant: small-caps;}
+    span.underline{text-decoration: underline;}
+    div.column{display: inline-block; vertical-align: top; width: 50%;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    ul.task-list{list-style: none;}
+    pre > code.sourceCode { white-space: pre; position: relative; }
+    pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+    pre > code.sourceCode > span:empty { height: 1.2em; }
+    code.sourceCode > span { color: inherit; text-decoration: inherit; }
+    div.sourceCode { margin: 1em 0; }
+    pre.sourceCode { margin: 0; }
+    @media screen {
+    div.sourceCode { overflow: auto; }
+    }
+    @media print {
+    pre > code.sourceCode { white-space: pre-wrap; }
+    pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+    }
+    pre.numberSource code
+      { counter-reset: source-line 0; }
+    pre.numberSource code > span
+      { position: relative; left: -4em; counter-increment: source-line; }
+    pre.numberSource code > span > a:first-child::before
+      { content: counter(source-line);
+        position: relative; left: -1em; text-align: right; vertical-align: baseline;
+        border: none; display: inline-block;
+        -webkit-touch-callout: none; -webkit-user-select: none;
+        -khtml-user-select: none; -moz-user-select: none;
+        -ms-user-select: none; user-select: none;
+        padding: 0 4px; width: 4em;
+        color: #aaaaaa;
+      }
+    pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+    div.sourceCode
+      {   }
+    @media screen {
+    pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+    }
+    code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+    code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+    code span.at { color: #7d9029; } /* Attribute */
+    code span.bn { color: #40a070; } /* BaseN */
+    code span.bu { } /* BuiltIn */
+    code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+    code span.ch { color: #4070a0; } /* Char */
+    code span.cn { color: #880000; } /* Constant */
+    code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+    code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+    code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+    code span.dt { color: #902000; } /* DataType */
+    code span.dv { color: #40a070; } /* DecVal */
+    code span.er { color: #ff0000; font-weight: bold; } /* Error */
+    code span.ex { } /* Extension */
+    code span.fl { color: #40a070; } /* Float */
+    code span.fu { color: #06287e; } /* Function */
+    code span.im { } /* Import */
+    code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+    code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+    code span.op { color: #666666; } /* Operator */
+    code span.ot { color: #007020; } /* Other */
+    code span.pp { color: #bc7a00; } /* Preprocessor */
+    code span.sc { color: #4070a0; } /* SpecialChar */
+    code span.ss { color: #bb6688; } /* SpecialString */
+    code span.st { color: #4070a0; } /* String */
+    code span.va { color: #19177c; } /* Variable */
+    code span.vs { color: #4070a0; } /* VerbatimString */
+    code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+  </style>
+  <link rel="stylesheet" type="text/css" media="screen, projection, print"
+    href="https://www.w3.org/Talks/Tools/Slidy2/styles/slidy.css" />
+  <script src="https://www.w3.org/Talks/Tools/Slidy2/scripts/slidy.js"
+    charset="utf-8" type="text/javascript"></script>
+</head>
+<body>
+<div class="slide titlepage">
+  <h1 class="title">Parametricity, And The State Space of Programs</h1>
+  <p class="author">
+Kris Nuttycombe (<span class="citation">@nuttycom</span>) - April, 2020
+  </p>
+</div>
+<div id="resources" class="slide section level1">
+<h1>Resources</h1>
+<ul>
+<li>Slides: <a href="http://nuttycom.github.io/state_spaces/index.html">nuttycom.github.io/state_spaces/index.html</a></li>
+</ul>
+</div>
+<div id="the-problem" class="slide section level1">
+<h1>The Problem</h1>
+<div>
+<div>
+<ul class="incremental">
+<li><p>Programming is hard, maintenance is harder.</p></li>
+<li><p>Churn and inflexibility are a problem.</p></li>
+<li><p>So how to fix it?</p>
+<ul class="incremental">
+<li>Write down small, general facts about the universe.</li>
+<li>Compose small facts to obtain more specific results.</li>
+<li>Use good tools to check that we’ve written things down right.</li>
+</ul></li>
+</ul>
+</div>
+</div>
+</div>
+<div id="outline" class="slide section level1">
+<h1>Outline</h1>
+<ul>
+<li>Types and the state space of programs
+<ul>
+<li>Sum and product types</li>
+<li>Functions</li>
+</ul></li>
+<li>Types as sets of capabilities
+<ul>
+<li>Newtypes</li>
+<li>A basic introduction to parametricity.</li>
+<li>IO capabilities and mocking</li>
+</ul></li>
+</ul>
+</div>
+<div id="types-as-state-spaces" class="slide section level1">
+<h1>Types as state spaces</h1>
+<p>How many different values can this function possibly return?</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode rust"><code class="sourceCode rust"><span id="cb1-1"><a href="#cb1-1"></a><span class="kw">fn</span> f() <span class="op">-&gt;</span> <span class="dt">bool</span></span></code></pre></div>
+</div>
+<div id="types-as-state-spaces-1" class="slide section level1">
+<h1>Types as state spaces</h1>
+<p>How many different values can this function possibly return?</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode rust"><code class="sourceCode rust"><span id="cb2-1"><a href="#cb2-1"></a><span class="kw">fn</span> f() <span class="op">-&gt;</span> <span class="dt">bool</span> <span class="co">// 2 possible values</span></span></code></pre></div>
+</div>
+<div id="types-as-state-spaces-2" class="slide section level1">
+<h1>Types as state spaces</h1>
+<p>How many different values can this function possibly return?</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode rust"><code class="sourceCode rust"><span id="cb3-1"><a href="#cb3-1"></a><span class="kw">fn</span> f() <span class="op">-&gt;</span> <span class="dt">bool</span> <span class="co">// 2 possible values</span></span></code></pre></div>
+<div class="sourceCode" id="cb4"><pre class="sourceCode rust"><code class="sourceCode rust"><span id="cb4-1"><a href="#cb4-1"></a><span class="kw">fn</span> g() <span class="op">-&gt;</span> <span class="dt">u32</span></span></code></pre></div>
+</div>
+<div id="types-as-state-spaces-3" class="slide section level1">
+<h1>Types as state spaces</h1>
+<p>How many different values can this function possibly return?</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode rust"><code class="sourceCode rust"><span id="cb5-1"><a href="#cb5-1"></a><span class="kw">fn</span> f() <span class="op">-&gt;</span> <span class="dt">bool</span> <span class="co">// 2 possible values</span></span></code></pre></div>
+<div class="sourceCode" id="cb6"><pre class="sourceCode rust"><code class="sourceCode rust"><span id="cb6-1"><a href="#cb6-1"></a><span class="kw">fn</span> g() <span class="op">-&gt;</span> <span class="dt">u32</span> <span class="co">// 2^32 possible values</span></span></code></pre></div>
+</div>
+<div id="types-as-state-spaces-4" class="slide section level1">
+<h1>Types as state spaces</h1>
+<p>How many different values can this function possibly return?</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode rust"><code class="sourceCode rust"><span id="cb7-1"><a href="#cb7-1"></a><span class="kw">fn</span> f() <span class="op">-&gt;</span> <span class="dt">bool</span> <span class="co">// 2 possible values</span></span></code></pre></div>
+<div class="sourceCode" id="cb8"><pre class="sourceCode rust"><code class="sourceCode rust"><span id="cb8-1"><a href="#cb8-1"></a><span class="kw">fn</span> g() <span class="op">-&gt;</span> <span class="dt">u32</span> <span class="co">// 2^32 possible values</span></span></code></pre></div>
+<p>We refer to the number of inhabitants of a type T as its cardinality, and denote it |T|, so |bool| == 2</p>
+</div>
+<div id="cardinality" class="slide section level1">
+<h1>Cardinality</h1>
+<div class="sourceCode" id="cb9"><pre class="sourceCode rust"><code class="sourceCode rust"><span id="cb9-1"><a href="#cb9-1"></a><span class="op">|</span>(<span class="dt">bool</span><span class="op">,</span> <span class="dt">u32</span>)<span class="op">|</span></span></code></pre></div>
+</div>
+<div id="cardinality-1" class="slide section level1">
+<h1>Cardinality</h1>
+<div class="sourceCode" id="cb10"><pre class="sourceCode rust"><code class="sourceCode rust"><span id="cb10-1"><a href="#cb10-1"></a><span class="op">|</span>(<span class="dt">bool</span><span class="op">,</span> <span class="dt">u32</span>)<span class="op">|</span> <span class="op">==</span> <span class="dv">2</span> <span class="op">*</span> <span class="dv">2</span><span class="op">^</span><span class="dv">32</span> <span class="op">==</span> <span class="dv">2</span><span class="op">^</span><span class="dv">33</span></span></code></pre></div>
+</div>
+<div id="cardinality-2" class="slide section level1">
+<h1>Cardinality</h1>
+<div class="sourceCode" id="cb11"><pre class="sourceCode rust"><code class="sourceCode rust"><span id="cb11-1"><a href="#cb11-1"></a><span class="op">|</span>(<span class="dt">bool</span><span class="op">,</span> <span class="dt">u32</span>)<span class="op">|</span> <span class="op">==</span> <span class="dv">2</span> <span class="op">*</span> <span class="dv">2</span><span class="op">^</span><span class="dv">32</span> <span class="op">==</span> <span class="dv">2</span><span class="op">^</span><span class="dv">33</span></span></code></pre></div>
+<div class="sourceCode" id="cb12"><pre class="sourceCode rust"><code class="sourceCode rust"><span id="cb12-1"><a href="#cb12-1"></a><span class="op">|</span>(A<span class="op">,</span> B)<span class="op">|</span> <span class="op">==</span> A <span class="op">*</span> B</span></code></pre></div>
+</div>
+<div id="cardinality-3" class="slide section level1">
+<h1>Cardinality</h1>
+<div class="sourceCode" id="cb13"><pre class="sourceCode rust"><code class="sourceCode rust"><span id="cb13-1"><a href="#cb13-1"></a><span class="op">|</span>(<span class="dt">bool</span><span class="op">,</span> <span class="dt">u32</span>)<span class="op">|</span> <span class="op">==</span> <span class="dv">2</span> <span class="op">*</span> <span class="dv">2</span><span class="op">^</span><span class="dv">32</span> <span class="op">==</span> <span class="dv">2</span><span class="op">^</span><span class="dv">33</span></span></code></pre></div>
+<div class="sourceCode" id="cb14"><pre class="sourceCode rust"><code class="sourceCode rust"><span id="cb14-1"><a href="#cb14-1"></a><span class="op">|</span>(A<span class="op">,</span> B)<span class="op">|</span> <span class="op">==</span> A <span class="op">*</span> B</span></code></pre></div>
+<div class="sourceCode" id="cb15"><pre class="sourceCode rust"><code class="sourceCode rust"><span id="cb15-1"><a href="#cb15-1"></a><span class="op">|</span>Either<span class="op">&lt;</span><span class="dt">bool</span><span class="op">,</span> <span class="dt">u32</span><span class="op">&gt;|</span></span></code></pre></div>
+</div>
+<div id="cardinality-4" class="slide section level1">
+<h1>Cardinality</h1>
+<div class="sourceCode" id="cb16"><pre class="sourceCode rust"><code class="sourceCode rust"><span id="cb16-1"><a href="#cb16-1"></a><span class="op">|</span>(<span class="dt">bool</span><span class="op">,</span> <span class="dt">u32</span>)<span class="op">|</span> <span class="op">==</span> <span class="dv">2</span> <span class="op">*</span> <span class="dv">2</span><span class="op">^</span><span class="dv">32</span> <span class="op">==</span> <span class="dv">2</span><span class="op">^</span><span class="dv">33</span></span></code></pre></div>
+<div class="sourceCode" id="cb17"><pre class="sourceCode rust"><code class="sourceCode rust"><span id="cb17-1"><a href="#cb17-1"></a><span class="op">|</span>(A<span class="op">,</span> B)<span class="op">|</span> <span class="op">==</span> A <span class="op">*</span> B</span></code></pre></div>
+<div class="sourceCode" id="cb18"><pre class="sourceCode rust"><code class="sourceCode rust"><span id="cb18-1"><a href="#cb18-1"></a><span class="op">|</span>Either<span class="op">&lt;</span><span class="dt">bool</span><span class="op">,</span> <span class="dt">u32</span><span class="op">&gt;|</span> <span class="op">==</span> <span class="dv">2</span> <span class="op">+</span> <span class="dv">2</span><span class="op">^</span><span class="dv">32</span></span></code></pre></div>
+</div>
+<div id="cardinality-5" class="slide section level1">
+<h1>Cardinality</h1>
+<div class="sourceCode" id="cb19"><pre class="sourceCode rust"><code class="sourceCode rust"><span id="cb19-1"><a href="#cb19-1"></a><span class="op">|</span>(<span class="dt">bool</span><span class="op">,</span> <span class="dt">u32</span>)<span class="op">|</span> <span class="op">==</span> <span class="dv">2</span> <span class="op">*</span> <span class="dv">2</span><span class="op">^</span><span class="dv">32</span> <span class="op">==</span> <span class="dv">2</span><span class="op">^</span><span class="dv">33</span></span></code></pre></div>
+<div class="sourceCode" id="cb20"><pre class="sourceCode rust"><code class="sourceCode rust"><span id="cb20-1"><a href="#cb20-1"></a><span class="op">|</span>(A<span class="op">,</span> B)<span class="op">|</span> <span class="op">==</span> A <span class="op">*</span> B</span></code></pre></div>
+<div class="sourceCode" id="cb21"><pre class="sourceCode rust"><code class="sourceCode rust"><span id="cb21-1"><a href="#cb21-1"></a><span class="op">|</span>Either<span class="op">&lt;</span><span class="dt">bool</span><span class="op">,</span> <span class="dt">u32</span><span class="op">&gt;|</span> <span class="op">==</span> <span class="dv">2</span> <span class="op">+</span> <span class="dv">2</span><span class="op">^</span><span class="dv">32</span></span></code></pre></div>
+<div class="sourceCode" id="cb22"><pre class="sourceCode rust"><code class="sourceCode rust"><span id="cb22-1"><a href="#cb22-1"></a><span class="op">|</span>Either<span class="op">&lt;</span>A<span class="op">,</span> B<span class="op">&gt;|</span> <span class="op">==</span> A <span class="op">+</span> B</span></code></pre></div>
+</div>
+<div id="cardinality-6" class="slide section level1">
+<h1>Cardinality</h1>
+<div class="sourceCode" id="cb23"><pre class="sourceCode rust"><code class="sourceCode rust"><span id="cb23-1"><a href="#cb23-1"></a><span class="op">|</span>(<span class="dt">bool</span><span class="op">,</span> <span class="dt">u32</span>)<span class="op">|</span> <span class="op">==</span> <span class="dv">2</span> <span class="op">*</span> <span class="dv">2</span><span class="op">^</span><span class="dv">32</span> <span class="op">==</span> <span class="dv">2</span><span class="op">^</span><span class="dv">33</span></span></code></pre></div>
+<div class="sourceCode" id="cb24"><pre class="sourceCode rust"><code class="sourceCode rust"><span id="cb24-1"><a href="#cb24-1"></a><span class="op">|</span>(A<span class="op">,</span> B)<span class="op">|</span> <span class="op">==</span> A <span class="op">*</span> B</span></code></pre></div>
+<div class="sourceCode" id="cb25"><pre class="sourceCode rust"><code class="sourceCode rust"><span id="cb25-1"><a href="#cb25-1"></a><span class="op">|</span>Either<span class="op">&lt;</span><span class="dt">bool</span><span class="op">,</span> <span class="dt">u32</span><span class="op">&gt;|</span> <span class="op">==</span> <span class="dv">2</span> <span class="op">+</span> <span class="dv">2</span><span class="op">^</span><span class="dv">32</span></span></code></pre></div>
+<div class="sourceCode" id="cb26"><pre class="sourceCode rust"><code class="sourceCode rust"><span id="cb26-1"><a href="#cb26-1"></a><span class="op">|</span>Either<span class="op">&lt;</span>A<span class="op">,</span> B<span class="op">&gt;|</span> <span class="op">==</span> A <span class="op">+</span> B</span></code></pre></div>
+<ul>
+<li>We refer to tuple-or struct-like types as <strong>product types</strong> and Either- or Enum-like types as <strong>sum types</strong>.</li>
+</ul>
+</div>
+<div id="cardinality-7" class="slide section level1">
+<h1>Cardinality</h1>
+<div class="sourceCode" id="cb27"><pre class="sourceCode rust"><code class="sourceCode rust"><span id="cb27-1"><a href="#cb27-1"></a><span class="op">|</span>(<span class="dt">bool</span><span class="op">,</span> <span class="dt">u32</span>)<span class="op">|</span> <span class="op">==</span> <span class="dv">2</span> <span class="op">*</span> <span class="dv">2</span><span class="op">^</span><span class="dv">32</span> <span class="op">==</span> <span class="dv">2</span><span class="op">^</span><span class="dv">33</span></span></code></pre></div>
+<div class="sourceCode" id="cb28"><pre class="sourceCode rust"><code class="sourceCode rust"><span id="cb28-1"><a href="#cb28-1"></a><span class="op">|</span>(A<span class="op">,</span> B)<span class="op">|</span> <span class="op">==</span> A <span class="op">*</span> B</span></code></pre></div>
+<div class="sourceCode" id="cb29"><pre class="sourceCode rust"><code class="sourceCode rust"><span id="cb29-1"><a href="#cb29-1"></a><span class="op">|</span>Either<span class="op">&lt;</span><span class="dt">bool</span><span class="op">,</span> <span class="dt">u32</span><span class="op">&gt;|</span> <span class="op">==</span> <span class="dv">2</span> <span class="op">+</span> <span class="dv">2</span><span class="op">^</span><span class="dv">32</span></span></code></pre></div>
+<div class="sourceCode" id="cb30"><pre class="sourceCode rust"><code class="sourceCode rust"><span id="cb30-1"><a href="#cb30-1"></a><span class="op">|</span>Either<span class="op">&lt;</span>A<span class="op">,</span> B<span class="op">&gt;|</span> <span class="op">==</span> A <span class="op">+</span> B</span></code></pre></div>
+<ul>
+<li>We refer to tuple-or struct-like types as <strong>product types</strong> and Either- or Enum-like types as <strong>sum types</strong>.</li>
+</ul>
+<div class="sourceCode" id="cb31"><pre class="sourceCode rust"><code class="sourceCode rust"><span id="cb31-1"><a href="#cb31-1"></a><span class="op">|</span>Either<span class="op">&lt;</span><span class="dt">u32</span><span class="op">,</span> <span class="dt">u32</span><span class="op">&gt;|</span></span></code></pre></div>
+</div>
+<div id="cardinality-8" class="slide section level1">
+<h1>Cardinality</h1>
+<div class="sourceCode" id="cb32"><pre class="sourceCode rust"><code class="sourceCode rust"><span id="cb32-1"><a href="#cb32-1"></a><span class="op">|</span>(<span class="dt">bool</span><span class="op">,</span> <span class="dt">u32</span>)<span class="op">|</span> <span class="op">==</span> <span class="dv">2</span> <span class="op">*</span> <span class="dv">2</span><span class="op">^</span><span class="dv">32</span> <span class="op">==</span> <span class="dv">2</span><span class="op">^</span><span class="dv">33</span></span></code></pre></div>
+<div class="sourceCode" id="cb33"><pre class="sourceCode rust"><code class="sourceCode rust"><span id="cb33-1"><a href="#cb33-1"></a><span class="op">|</span>(A<span class="op">,</span> B)<span class="op">|</span> <span class="op">==</span> A <span class="op">*</span> B</span></code></pre></div>
+<div class="sourceCode" id="cb34"><pre class="sourceCode rust"><code class="sourceCode rust"><span id="cb34-1"><a href="#cb34-1"></a><span class="op">|</span>Either<span class="op">&lt;</span><span class="dt">bool</span><span class="op">,</span> <span class="dt">u32</span><span class="op">&gt;|</span> <span class="op">==</span> <span class="dv">2</span> <span class="op">+</span> <span class="dv">2</span><span class="op">^</span><span class="dv">32</span></span></code></pre></div>
+<div class="sourceCode" id="cb35"><pre class="sourceCode rust"><code class="sourceCode rust"><span id="cb35-1"><a href="#cb35-1"></a><span class="op">|</span>Either<span class="op">&lt;</span>A<span class="op">,</span> B<span class="op">&gt;|</span> <span class="op">==</span> A <span class="op">+</span> B</span></code></pre></div>
+<ul>
+<li>We refer to tuple-or struct-like types as <strong>product types</strong> and Either- or Enum-like types as <strong>sum types</strong>.</li>
+</ul>
+<div class="sourceCode" id="cb36"><pre class="sourceCode rust"><code class="sourceCode rust"><span id="cb36-1"><a href="#cb36-1"></a><span class="op">|</span>Either<span class="op">&lt;</span><span class="dt">u32</span><span class="op">,</span> <span class="dt">u32</span><span class="op">&gt;|</span> <span class="op">==</span> <span class="dv">2</span><span class="op">^</span><span class="dv">32</span> <span class="op">+</span> <span class="dv">2</span><span class="op">^</span><span class="dv">32</span> <span class="op">==</span> <span class="dv">2</span><span class="op">^</span><span class="dv">33</span></span></code></pre></div>
+</div>
+<div id="cardinality-9" class="slide section level1">
+<h1>Cardinality</h1>
+<div class="sourceCode" id="cb37"><pre class="sourceCode rust"><code class="sourceCode rust"><span id="cb37-1"><a href="#cb37-1"></a><span class="op">|</span><span class="bu">Fn</span>(<span class="dt">bool</span>) <span class="op">-&gt;</span> <span class="dt">u32</span><span class="op">|</span></span></code></pre></div>
+</div>
+<div id="cardinality-10" class="slide section level1">
+<h1>Cardinality</h1>
+<div class="sourceCode" id="cb38"><pre class="sourceCode rust"><code class="sourceCode rust"><span id="cb38-1"><a href="#cb38-1"></a><span class="op">|</span><span class="bu">Fn</span>(<span class="dt">bool</span>) <span class="op">-&gt;</span> <span class="dt">u32</span><span class="op">|</span></span></code></pre></div>
+<div class="sourceCode" id="cb39"><pre class="sourceCode rust"><code class="sourceCode rust"><span id="cb39-1"><a href="#cb39-1"></a>f(<span class="cn">true</span>) <span class="op">=</span> <span class="dv">1</span></span>
+<span id="cb39-2"><a href="#cb39-2"></a>f(<span class="cn">false</span>) <span class="op">=</span> <span class="dv">1</span></span>
+<span id="cb39-3"><a href="#cb39-3"></a>f(<span class="cn">true</span>) <span class="op">=</span> <span class="dv">2</span></span>
+<span id="cb39-4"><a href="#cb39-4"></a>f(<span class="cn">false</span>) <span class="op">=</span> <span class="dv">2</span></span>
+<span id="cb39-5"><a href="#cb39-5"></a><span class="op">...</span></span></code></pre></div>
+</div>
+<div id="cardinality-11" class="slide section level1">
+<h1>Cardinality</h1>
+<div class="sourceCode" id="cb40"><pre class="sourceCode rust"><code class="sourceCode rust"><span id="cb40-1"><a href="#cb40-1"></a><span class="op">|</span><span class="bu">Fn</span>(<span class="dt">bool</span>) <span class="op">-&gt;</span> <span class="dt">u32</span><span class="op">|</span> <span class="op">==</span> (<span class="dv">2</span><span class="op">^</span><span class="dv">32</span>) <span class="op">^</span> <span class="dv">2</span></span></code></pre></div>
+<div class="sourceCode" id="cb41"><pre class="sourceCode rust"><code class="sourceCode rust"><span id="cb41-1"><a href="#cb41-1"></a>f(<span class="cn">true</span>) <span class="op">=</span> <span class="dv">1</span></span>
+<span id="cb41-2"><a href="#cb41-2"></a>f(<span class="cn">false</span>) <span class="op">=</span> <span class="dv">1</span></span>
+<span id="cb41-3"><a href="#cb41-3"></a>f(<span class="cn">true</span>) <span class="op">=</span> <span class="dv">2</span></span>
+<span id="cb41-4"><a href="#cb41-4"></a>f(<span class="cn">false</span>) <span class="op">=</span> <span class="dv">2</span></span>
+<span id="cb41-5"><a href="#cb41-5"></a><span class="op">...</span></span></code></pre></div>
+</div>
+<div id="cardinality-12" class="slide section level1">
+<h1>Cardinality</h1>
+<div class="sourceCode" id="cb42"><pre class="sourceCode rust"><code class="sourceCode rust"><span id="cb42-1"><a href="#cb42-1"></a><span class="op">|</span><span class="bu">Fn</span>(<span class="dt">bool</span>) <span class="op">-&gt;</span> <span class="dt">u32</span><span class="op">|</span> <span class="op">==</span> (<span class="dv">2</span><span class="op">^</span><span class="dv">32</span>) <span class="op">^</span> <span class="dv">2</span></span></code></pre></div>
+<div class="sourceCode" id="cb43"><pre class="sourceCode rust"><code class="sourceCode rust"><span id="cb43-1"><a href="#cb43-1"></a>f(<span class="cn">true</span>) <span class="op">=</span> <span class="dv">1</span></span>
+<span id="cb43-2"><a href="#cb43-2"></a>f(<span class="cn">false</span>) <span class="op">=</span> <span class="dv">1</span></span>
+<span id="cb43-3"><a href="#cb43-3"></a>f(<span class="cn">true</span>) <span class="op">=</span> <span class="dv">2</span></span>
+<span id="cb43-4"><a href="#cb43-4"></a>f(<span class="cn">false</span>) <span class="op">=</span> <span class="dv">2</span></span>
+<span id="cb43-5"><a href="#cb43-5"></a><span class="op">...</span></span></code></pre></div>
+<div class="sourceCode" id="cb44"><pre class="sourceCode rust"><code class="sourceCode rust"><span id="cb44-1"><a href="#cb44-1"></a><span class="op">|</span><span class="bu">Fn</span>(A) <span class="op">-&gt;</span> B<span class="op">|</span> <span class="op">==</span> <span class="op">|</span>B<span class="op">|</span> <span class="op">^</span> <span class="op">|</span>A<span class="op">|</span></span></code></pre></div>
+</div>
+<div id="cardinality-13" class="slide section level1">
+<h1>Cardinality</h1>
+<div class="sourceCode" id="cb45"><pre class="sourceCode rust"><code class="sourceCode rust"><span id="cb45-1"><a href="#cb45-1"></a><span class="op">|</span><span class="dt">String</span><span class="op">|</span></span></code></pre></div>
+</div>
+<div id="cardinality-14" class="slide section level1">
+<h1>Cardinality</h1>
+<div class="sourceCode" id="cb46"><pre class="sourceCode rust"><code class="sourceCode rust"><span id="cb46-1"><a href="#cb46-1"></a><span class="op">|</span><span class="dt">String</span><span class="op">|</span> <span class="op">==</span> 😬😖😩😷</span></code></pre></div>
+</div>
+<div id="sum-types" class="slide section level1">
+<h1>Sum Types</h1>
+<div class="sourceCode" id="cb47"><pre class="sourceCode rust"><code class="sourceCode rust"><span id="cb47-1"><a href="#cb47-1"></a><span class="co">// rust</span></span>
+<span id="cb47-2"><a href="#cb47-2"></a></span>
+<span id="cb47-3"><a href="#cb47-3"></a><span class="kw">enum</span> Either<span class="op">&lt;</span>A<span class="op">,</span> B<span class="op">&gt;</span> <span class="op">{</span></span>
+<span id="cb47-4"><a href="#cb47-4"></a>  Left(A)<span class="op">,</span></span>
+<span id="cb47-5"><a href="#cb47-5"></a>  Right(B)<span class="op">,</span></span>
+<span id="cb47-6"><a href="#cb47-6"></a><span class="op">}</span></span></code></pre></div>
+</div>
+<div id="sum-types-1" class="slide section level1">
+<h1>Sum Types</h1>
+<div class="sourceCode" id="cb48"><pre class="sourceCode rust"><code class="sourceCode rust"><span id="cb48-1"><a href="#cb48-1"></a><span class="co">// rust</span></span>
+<span id="cb48-2"><a href="#cb48-2"></a></span>
+<span id="cb48-3"><a href="#cb48-3"></a><span class="kw">enum</span> Either<span class="op">&lt;</span>A<span class="op">,</span> B<span class="op">&gt;</span> <span class="op">{</span></span>
+<span id="cb48-4"><a href="#cb48-4"></a>  Left(A)<span class="op">,</span></span>
+<span id="cb48-5"><a href="#cb48-5"></a>  Right(B)<span class="op">,</span></span>
+<span id="cb48-6"><a href="#cb48-6"></a><span class="op">}</span></span></code></pre></div>
+<div class="sourceCode" id="cb49"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb49-1"><a href="#cb49-1"></a><span class="co">-- haskell</span></span>
+<span id="cb49-2"><a href="#cb49-2"></a></span>
+<span id="cb49-3"><a href="#cb49-3"></a><span class="kw">data</span> <span class="dt">Either</span> a b <span class="ot">=</span> <span class="dt">Left</span> a <span class="op">|</span> <span class="dt">Right</span> b</span></code></pre></div>
+</div>
+<div id="sum-types-2" class="slide section level1">
+<h1>Sum Types</h1>
+<div class="sourceCode" id="cb50"><pre class="sourceCode java"><code class="sourceCode java"><span id="cb50-1"><a href="#cb50-1"></a><span class="co">// java</span></span>
+<span id="cb50-2"><a href="#cb50-2"></a></span>
+<span id="cb50-3"><a href="#cb50-3"></a><span class="kw">interface</span> Either&lt;A, B&gt; {</span>
+<span id="cb50-4"><a href="#cb50-4"></a>  &lt;C&gt; C <span class="fu">accept</span>(EitherVisitor&lt;A, B, C&gt; c);</span>
+<span id="cb50-5"><a href="#cb50-5"></a>}</span>
+<span id="cb50-6"><a href="#cb50-6"></a></span>
+<span id="cb50-7"><a href="#cb50-7"></a><span class="kw">interface</span> EitherVisitor&lt;A, B, C&gt; {</span>
+<span id="cb50-8"><a href="#cb50-8"></a>  C <span class="fu">whenLeft</span>(A a);</span>
+<span id="cb50-9"><a href="#cb50-9"></a>  C <span class="fu">whenRight</span>(B b);</span>
+<span id="cb50-10"><a href="#cb50-10"></a>}</span>
+<span id="cb50-11"><a href="#cb50-11"></a></span>
+<span id="cb50-12"><a href="#cb50-12"></a><span class="kw">class</span> Left&lt;A, B&gt; <span class="kw">implements</span> Either&lt;A, B&gt; {</span>
+<span id="cb50-13"><a href="#cb50-13"></a>  <span class="kw">private</span> A a;</span>
+<span id="cb50-14"><a href="#cb50-14"></a>  <span class="kw">public</span> <span class="fu">Left</span>(A a) { <span class="kw">this</span>.<span class="fu">a</span> = a; }</span>
+<span id="cb50-15"><a href="#cb50-15"></a></span>
+<span id="cb50-16"><a href="#cb50-16"></a>  &lt;C&gt; C <span class="fu">accept</span>(EitherVisitor&lt;A, B, C&gt; v) {</span>
+<span id="cb50-17"><a href="#cb50-17"></a>    <span class="kw">return</span> v.<span class="fu">whenLeft</span>(<span class="kw">this</span>.<span class="fu">a</span>);</span>
+<span id="cb50-18"><a href="#cb50-18"></a>  }</span>
+<span id="cb50-19"><a href="#cb50-19"></a>}</span>
+<span id="cb50-20"><a href="#cb50-20"></a></span>
+<span id="cb50-21"><a href="#cb50-21"></a><span class="kw">class</span> Right&lt;A, B&gt; ...</span></code></pre></div>
+</div>
+<div id="sum-types-3" class="slide section level1">
+<h1>Sum Types</h1>
+<div class="sourceCode" id="cb51"><pre class="sourceCode go"><code class="sourceCode go"><span id="cb51-1"><a href="#cb51-1"></a><span class="co">// golang</span></span>
+<span id="cb51-2"><a href="#cb51-2"></a></span>
+<span id="cb51-3"><a href="#cb51-3"></a><span class="co">// ... sorry, try back later</span></span></code></pre></div>
+</div>
+<div id="types-as-sets-of-operations" class="slide section level1">
+<h1>Types as sets of operations</h1>
+<div class="sourceCode" id="cb52"><pre class="sourceCode rust"><code class="sourceCode rust"><span id="cb52-1"><a href="#cb52-1"></a><span class="co">// bool</span></span>
+<span id="cb52-2"><a href="#cb52-2"></a></span>
+<span id="cb52-3"><a href="#cb52-3"></a><span class="op">&amp;&amp;</span> <span class="co">// Logical AND</span></span>
+<span id="cb52-4"><a href="#cb52-4"></a><span class="op">||</span> <span class="co">// Logical OR</span></span>
+<span id="cb52-5"><a href="#cb52-5"></a><span class="op">!</span>  <span class="co">// Logical Not</span></span>
+<span id="cb52-6"><a href="#cb52-6"></a><span class="op">&amp;</span>  <span class="co">// AND</span></span>
+<span id="cb52-7"><a href="#cb52-7"></a><span class="op">|</span>  <span class="co">// OR</span></span>
+<span id="cb52-8"><a href="#cb52-8"></a><span class="op">^</span>  <span class="co">// XOR</span></span></code></pre></div>
+</div>
+<div id="types-as-sets-of-operations-1" class="slide section level1">
+<h1>Types as sets of operations</h1>
+<div class="sourceCode" id="cb53"><pre class="sourceCode rust"><code class="sourceCode rust"><span id="cb53-1"><a href="#cb53-1"></a><span class="co">// i32</span></span>
+<span id="cb53-2"><a href="#cb53-2"></a></span>
+<span id="cb53-3"><a href="#cb53-3"></a><span class="op">+</span>   <span class="co">// Addition</span></span>
+<span id="cb53-4"><a href="#cb53-4"></a><span class="op">-</span>   <span class="co">// Subtraction</span></span>
+<span id="cb53-5"><a href="#cb53-5"></a><span class="op">*</span>   <span class="co">// Multiplication</span></span>
+<span id="cb53-6"><a href="#cb53-6"></a><span class="op">/</span>   <span class="co">// Division</span></span>
+<span id="cb53-7"><a href="#cb53-7"></a><span class="op">%</span>   <span class="co">// Modulus</span></span>
+<span id="cb53-8"><a href="#cb53-8"></a><span class="op">&gt;</span>   <span class="co">// Greater than</span></span>
+<span id="cb53-9"><a href="#cb53-9"></a><span class="op">&lt;</span>   <span class="co">// Lesser than</span></span>
+<span id="cb53-10"><a href="#cb53-10"></a><span class="op">&gt;=</span>  <span class="co">// Greater than or equal to</span></span>
+<span id="cb53-11"><a href="#cb53-11"></a><span class="op">&lt;=</span>  <span class="co">// Lesser than or equal to</span></span>
+<span id="cb53-12"><a href="#cb53-12"></a><span class="op">==</span>  <span class="co">// Equality (A == B)</span></span>
+<span id="cb53-13"><a href="#cb53-13"></a><span class="op">!=</span>  <span class="co">// Not equal  (A != B)</span></span>
+<span id="cb53-14"><a href="#cb53-14"></a><span class="op">&amp;</span>   <span class="co">// Bitwise AND</span></span>
+<span id="cb53-15"><a href="#cb53-15"></a><span class="op">|</span>   <span class="co">// Bitwise OR</span></span>
+<span id="cb53-16"><a href="#cb53-16"></a><span class="op">^</span>   <span class="co">// Bitwise XOR</span></span>
+<span id="cb53-17"><a href="#cb53-17"></a><span class="op">!</span>   <span class="co">// Bitwise Not</span></span>
+<span id="cb53-18"><a href="#cb53-18"></a><span class="op">&lt;&lt;</span>  <span class="co">// Left Shift</span></span>
+<span id="cb53-19"><a href="#cb53-19"></a><span class="op">&gt;&gt;</span>  <span class="co">// Right shift</span></span>
+<span id="cb53-20"><a href="#cb53-20"></a><span class="op">&gt;&gt;&gt;</span> <span class="co">// Right shift with zero fill</span></span>
+<span id="cb53-21"><a href="#cb53-21"></a></span>
+<span id="cb53-22"><a href="#cb53-22"></a><span class="co">// also... arbitrary imported traits!</span></span></code></pre></div>
+</div>
+<div id="types-as-sets-of-operations-2" class="slide section level1">
+<h1>Types as sets of operations</h1>
+<div class="sourceCode" id="cb54"><pre class="sourceCode rust"><code class="sourceCode rust"><span id="cb54-1"><a href="#cb54-1"></a><span class="co">// String</span></span>
+<span id="cb54-2"><a href="#cb54-2"></a></span>
+<span id="cb54-3"><a href="#cb54-3"></a>🤮</span></code></pre></div>
+</div>
+<div id="types-as-sets-of-operations-3" class="slide section level1">
+<h1>Types as sets of operations</h1>
+<ul class="incremental">
+<li>If you have a value of a type, you have access to all the operations defined on that type.</li>
+<li>A lot of the time, most of those operations are not sensible given the context.</li>
+<li>In order to reduce the operations available in a given scope to a manageable set, we have two good tools: newtypes, and parametricity.</li>
+</ul>
+</div>
+<div id="newtypes" class="slide section level1">
+<h1>Newtypes</h1>
+<ul class="incremental">
+<li>The purpose of a newtype is to reduce the number of operations available on a value.</li>
+</ul>
+<ul class="incremental">
+<li><div class="sourceCode" id="cb55"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb55-1"><a href="#cb55-1"></a><span class="co">-- haskell</span></span>
+<span id="cb55-2"><a href="#cb55-2"></a><span class="kw">newtype</span> <span class="dt">IpAddr</span> <span class="ot">=</span> <span class="dt">IpAddr</span> <span class="dt">Word32</span></span></code></pre></div></li>
+<li><div class="sourceCode" id="cb56"><pre class="sourceCode rust"><code class="sourceCode rust"><span id="cb56-1"><a href="#cb56-1"></a><span class="co">// rust</span></span>
+<span id="cb56-2"><a href="#cb56-2"></a><span class="kw">struct</span> IpAddr(<span class="dt">u32</span>)</span></code></pre></div></li>
+</ul>
+<ul class="incremental">
+<li><p><code>u32</code> correctly represents the set of possible ip addresses, but it exposes too many operations! If you left-shift an IP address, you get something that is no longer an IP address, or at least doesn’t have a meaningful relationship to the original.</p></li>
+<li><div class="sourceCode" id="cb57"><pre class="sourceCode rust"><code class="sourceCode rust"><span id="cb57-1"><a href="#cb57-1"></a><span class="kw">impl</span> IpAddr <span class="op">{</span></span>
+<span id="cb57-2"><a href="#cb57-2"></a>  <span class="kw">fn</span> maskWith(i<span class="op">:</span> <span class="dt">u32</span>) <span class="op">-&gt;</span> <span class="dt">u32</span> <span class="op">{</span> <span class="op">...</span> <span class="op">}</span></span>
+<span id="cb57-3"><a href="#cb57-3"></a><span class="op">}</span></span></code></pre></div></li>
+</ul>
+<ul class="incremental">
+<li>Prune off everything, then add back the operations you need.</li>
+</ul>
+</div>
+<div id="newtypes-1" class="slide section level1">
+<h1>Newtypes</h1>
+<div class="sourceCode" id="cb58"><pre class="sourceCode rust"><code class="sourceCode rust"><span id="cb58-1"><a href="#cb58-1"></a><span class="kw">struct</span> IpAddr(<span class="dt">String</span>)</span>
+<span id="cb58-2"><a href="#cb58-2"></a></span>
+<span id="cb58-3"><a href="#cb58-3"></a><span class="kw">impl</span> IpAddr <span class="op">{</span></span>
+<span id="cb58-4"><a href="#cb58-4"></a>  <span class="kw">fn</span> maskWith(i<span class="op">:</span> <span class="dt">u32</span>) <span class="op">-&gt;</span> <span class="dt">u32</span> <span class="op">{</span> <span class="op">...</span> <span class="op">}</span></span>
+<span id="cb58-5"><a href="#cb58-5"></a><span class="op">}</span></span></code></pre></div>
+<p>A <code>String</code> is obviously a lousy representation for an IP address, but if it supports the operations that we need, we don’t really care.</p>
+</div>
+<div id="parsing-validation" class="slide section level1">
+<h1>Parsing &gt; Validation</h1>
+<ul class="incremental">
+<li><p>Validation is verifying that a value of a type conforms to its semantic constraints.</p></li>
+<li><p>Parsing is ensuring that you never produce values that could violate those constraints in the first place.</p></li>
+<li><div class="sourceCode" id="cb59"><pre class="sourceCode rust"><code class="sourceCode rust"><span id="cb59-1"><a href="#cb59-1"></a><span class="kw">fn</span> parseIpAddr(s<span class="op">:</span> <span class="dt">String</span>)<span class="op">:</span> <span class="dt">Result</span><span class="op">&lt;</span>IpAddr<span class="op">&gt;;</span></span></code></pre></div></li>
+<li><p>We reduce a set with infinite cardinality to (2^32 + |Error|) - and if <code>Error</code> is also a well-formed sum type, its cardinality will be small.</p></li>
+</ul>
+</div>
+<div id="the-vampire-policy" class="slide section level1">
+<h1>The Vampire Policy</h1>
+<div align="center">
+<p><img width="600" src="./images/bela-lugosi.jpg"/></p>
+<blockquote>
+<p>“Bug fixing strategy: forbid yourself to fix the bug. Instead, render the bug impossible by construction.” –<a href="https://twitter.com/extempore2/status/417366903209091073">Paul Phillips</a></p>
+</blockquote>
+</div>
+</div>
+<div id="parametricity" class="slide section level1">
+<h1>Parametricity</h1>
+<div class="sourceCode" id="cb60"><pre class="sourceCode rust"><code class="sourceCode rust"><span id="cb60-1"><a href="#cb60-1"></a><span class="kw">fn</span> identity<span class="op">&lt;</span>A<span class="op">&gt;</span>(a<span class="op">:</span> <span class="op">&amp;</span>A)<span class="op">:</span> <span class="op">&amp;</span>A</span></code></pre></div>
+<ul class="incremental">
+<li><p><code>&lt;A&gt;</code> is properly pronounced “forall a.”</p></li>
+<li><p>Parametricity allows us to forbid the implementation of a function from performing any operations on a value for which we were not explicitly provided a capability.</p></li>
+<li><p>We ensure the maximal possible space of invocations for the caller, and the minimal possible space of implementations for the implementer.</p></li>
+<li><p>Principle of Least Power</p></li>
+</ul>
+</div>
+<div id="parametricity-1" class="slide section level1">
+<h1>Parametricity</h1>
+<div class="sourceCode" id="cb61"><pre class="sourceCode rust"><code class="sourceCode rust"><span id="cb61-1"><a href="#cb61-1"></a><span class="kw">trait</span> Monoidal <span class="op">{</span></span>
+<span id="cb61-2"><a href="#cb61-2"></a>    <span class="kw">fn</span> mzero() <span class="op">-&gt;</span> <span class="dt">Self</span><span class="op">;</span></span>
+<span id="cb61-3"><a href="#cb61-3"></a>    <span class="kw">fn</span> mappend(<span class="op">&amp;</span><span class="kw">self</span><span class="op">,</span> b<span class="op">:</span> <span class="op">&amp;</span><span class="dt">Self</span>) <span class="op">-&gt;</span> <span class="dt">Self</span><span class="op">;</span></span>
+<span id="cb61-4"><a href="#cb61-4"></a><span class="op">}</span></span></code></pre></div>
+</div>
+<div id="parametricity-2" class="slide section level1">
+<h1>Parametricity</h1>
+<div class="sourceCode" id="cb62"><pre class="sourceCode rust"><code class="sourceCode rust"><span id="cb62-1"><a href="#cb62-1"></a><span class="kw">trait</span> Monoidal <span class="op">{</span></span>
+<span id="cb62-2"><a href="#cb62-2"></a>    <span class="kw">fn</span> mzero() <span class="op">-&gt;</span> <span class="dt">Self</span><span class="op">;</span></span>
+<span id="cb62-3"><a href="#cb62-3"></a>    <span class="kw">fn</span> mappend(<span class="op">&amp;</span><span class="kw">self</span><span class="op">,</span> b<span class="op">:</span> <span class="op">&amp;</span><span class="dt">Self</span>) <span class="op">-&gt;</span> <span class="dt">Self</span><span class="op">;</span></span>
+<span id="cb62-4"><a href="#cb62-4"></a><span class="op">}</span></span></code></pre></div>
+<div class="sourceCode" id="cb63"><pre class="sourceCode rust"><code class="sourceCode rust"><span id="cb63-1"><a href="#cb63-1"></a><span class="kw">fn</span> reduce<span class="op">&lt;</span>A<span class="op">:</span> Monoidal<span class="op">&gt;</span>(vs<span class="op">:</span> <span class="op">&amp;</span><span class="dt">Vec</span><span class="op">&lt;</span>A<span class="op">&gt;</span>) <span class="op">-&gt;</span> A <span class="op">{</span></span>
+<span id="cb63-2"><a href="#cb63-2"></a>    <span class="kw">let</span> <span class="kw">mut</span> result <span class="op">=</span> <span class="pp">A::</span>mzero()<span class="op">;</span></span>
+<span id="cb63-3"><a href="#cb63-3"></a>    <span class="kw">for</span> v <span class="kw">in</span> vs <span class="op">{</span></span>
+<span id="cb63-4"><a href="#cb63-4"></a>        result <span class="op">=</span> result<span class="op">.</span>mappend(v)<span class="op">;</span></span>
+<span id="cb63-5"><a href="#cb63-5"></a>    <span class="op">}</span></span>
+<span id="cb63-6"><a href="#cb63-6"></a></span>
+<span id="cb63-7"><a href="#cb63-7"></a>    result</span>
+<span id="cb63-8"><a href="#cb63-8"></a><span class="op">}</span></span></code></pre></div>
+</div>
+<div id="parametricity-3" class="slide section level1">
+<h1>Parametricity</h1>
+<div class="sourceCode" id="cb64"><pre class="sourceCode rust"><code class="sourceCode rust"><span id="cb64-1"><a href="#cb64-1"></a><span class="kw">trait</span> Monoidal <span class="op">{</span></span>
+<span id="cb64-2"><a href="#cb64-2"></a>    <span class="kw">fn</span> mzero() <span class="op">-&gt;</span> <span class="dt">Self</span><span class="op">;</span></span>
+<span id="cb64-3"><a href="#cb64-3"></a>    <span class="kw">fn</span> mappend(<span class="op">&amp;</span><span class="kw">self</span><span class="op">,</span> b<span class="op">:</span> <span class="op">&amp;</span><span class="dt">Self</span>) <span class="op">-&gt;</span> <span class="dt">Self</span><span class="op">;</span></span>
+<span id="cb64-4"><a href="#cb64-4"></a><span class="op">}</span></span></code></pre></div>
+<div class="sourceCode" id="cb65"><pre class="sourceCode rust"><code class="sourceCode rust"><span id="cb65-1"><a href="#cb65-1"></a><span class="kw">fn</span> reduce<span class="op">&lt;</span>A<span class="op">:</span> Monoidal<span class="op">,</span> V<span class="op">:</span> <span class="bu">Iterator</span><span class="op">&lt;</span>Item <span class="op">=</span> A<span class="op">&gt;&gt;</span>(vs<span class="op">:</span> V) <span class="op">-&gt;</span> A <span class="op">{</span></span>
+<span id="cb65-2"><a href="#cb65-2"></a>    <span class="kw">let</span> <span class="kw">mut</span> result <span class="op">=</span> <span class="pp">A::</span>mzero()<span class="op">;</span></span>
+<span id="cb65-3"><a href="#cb65-3"></a>    <span class="kw">for</span> v <span class="kw">in</span> vs <span class="op">{</span></span>
+<span id="cb65-4"><a href="#cb65-4"></a>        result <span class="op">=</span> result<span class="op">.</span>mappend(<span class="op">&amp;</span>v)<span class="op">;</span></span>
+<span id="cb65-5"><a href="#cb65-5"></a>    <span class="op">}</span></span>
+<span id="cb65-6"><a href="#cb65-6"></a></span>
+<span id="cb65-7"><a href="#cb65-7"></a>    result</span>
+<span id="cb65-8"><a href="#cb65-8"></a><span class="op">}</span></span></code></pre></div>
+</div>
+<div id="parametricity-4" class="slide section level1">
+<h1>Parametricity</h1>
+<div class="sourceCode" id="cb66"><pre class="sourceCode rust"><code class="sourceCode rust"><span id="cb66-1"><a href="#cb66-1"></a><span class="kw">trait</span> Monoid<span class="op">&lt;</span>A<span class="op">&gt;</span> <span class="op">{</span></span>
+<span id="cb66-2"><a href="#cb66-2"></a>    <span class="kw">fn</span> mzero() <span class="op">-&gt;</span> A<span class="op">;</span></span>
+<span id="cb66-3"><a href="#cb66-3"></a>    <span class="kw">fn</span> mappend(a<span class="op">:</span> <span class="op">&amp;</span>A<span class="op">,</span> b<span class="op">:</span> <span class="op">&amp;</span>A) <span class="op">-&gt;</span> A<span class="op">;</span></span>
+<span id="cb66-4"><a href="#cb66-4"></a><span class="op">}</span></span></code></pre></div>
+</div>
+<div id="parametricity-5" class="slide section level1">
+<h1>Parametricity</h1>
+<div class="sourceCode" id="cb67"><pre class="sourceCode rust"><code class="sourceCode rust"><span id="cb67-1"><a href="#cb67-1"></a><span class="kw">trait</span> Monoid<span class="op">&lt;</span>A<span class="op">&gt;</span> <span class="op">{</span></span>
+<span id="cb67-2"><a href="#cb67-2"></a>    <span class="kw">fn</span> mzero() <span class="op">-&gt;</span> A<span class="op">;</span></span>
+<span id="cb67-3"><a href="#cb67-3"></a>    <span class="kw">fn</span> mappend(a<span class="op">:</span> <span class="op">&amp;</span>A<span class="op">,</span> b<span class="op">:</span> <span class="op">&amp;</span>A) <span class="op">-&gt;</span> A<span class="op">;</span></span>
+<span id="cb67-4"><a href="#cb67-4"></a><span class="op">}</span></span></code></pre></div>
+<div class="sourceCode" id="cb68"><pre class="sourceCode rust"><code class="sourceCode rust"><span id="cb68-1"><a href="#cb68-1"></a><span class="kw">fn</span> reduce<span class="op">&lt;</span>A<span class="op">,</span> M<span class="op">:</span> Monoid<span class="op">&lt;</span>A<span class="op">&gt;,</span> V<span class="op">:</span> <span class="bu">Iterator</span><span class="op">&lt;</span>Item <span class="op">=</span> A<span class="op">&gt;&gt;</span>(vs<span class="op">:</span> V) <span class="op">-&gt;</span> A <span class="op">{</span></span>
+<span id="cb68-2"><a href="#cb68-2"></a>    <span class="kw">let</span> <span class="kw">mut</span> result <span class="op">=</span> <span class="pp">M::</span>mzero()<span class="op">;</span></span>
+<span id="cb68-3"><a href="#cb68-3"></a></span>
+<span id="cb68-4"><a href="#cb68-4"></a>    <span class="kw">for</span> v <span class="kw">in</span> vs <span class="op">{</span></span>
+<span id="cb68-5"><a href="#cb68-5"></a>        result <span class="op">=</span> <span class="pp">M::</span>mappend(<span class="op">&amp;</span>result<span class="op">,</span> <span class="op">&amp;</span>v)<span class="op">;</span></span>
+<span id="cb68-6"><a href="#cb68-6"></a>    <span class="op">}</span></span>
+<span id="cb68-7"><a href="#cb68-7"></a></span>
+<span id="cb68-8"><a href="#cb68-8"></a>    result</span>
+<span id="cb68-9"><a href="#cb68-9"></a><span class="op">}</span></span></code></pre></div>
+</div>
+<div id="parametricity-6" class="slide section level1">
+<h1>Parametricity</h1>
+<div class="sourceCode" id="cb69"><pre class="sourceCode rust"><code class="sourceCode rust"><span id="cb69-1"><a href="#cb69-1"></a><span class="kw">trait</span> Monoid<span class="op">&lt;</span>A<span class="op">&gt;</span> <span class="op">{</span></span>
+<span id="cb69-2"><a href="#cb69-2"></a>    <span class="kw">fn</span> mzero() <span class="op">-&gt;</span> A<span class="op">;</span></span>
+<span id="cb69-3"><a href="#cb69-3"></a>    <span class="kw">fn</span> mappend(a<span class="op">:</span> <span class="op">&amp;</span>A<span class="op">,</span> b<span class="op">:</span> <span class="op">&amp;</span>A) <span class="op">-&gt;</span> A<span class="op">;</span></span>
+<span id="cb69-4"><a href="#cb69-4"></a><span class="op">}</span></span></code></pre></div>
+<div class="sourceCode" id="cb70"><pre class="sourceCode rust"><code class="sourceCode rust"><span id="cb70-1"><a href="#cb70-1"></a><span class="kw">fn</span> reduce<span class="op">&lt;</span>A<span class="op">,</span> M<span class="op">:</span> Monoid<span class="op">&lt;</span>A<span class="op">&gt;,</span> V<span class="op">:</span> <span class="bu">Iterator</span><span class="op">&lt;</span>Item <span class="op">=</span> A<span class="op">&gt;&gt;</span>(vs<span class="op">:</span> V) <span class="op">-&gt;</span> A <span class="op">{</span></span>
+<span id="cb70-2"><a href="#cb70-2"></a>    <span class="op">...</span></span>
+<span id="cb70-3"><a href="#cb70-3"></a><span class="op">}</span></span></code></pre></div>
+<div class="sourceCode" id="cb71"><pre class="sourceCode rust"><code class="sourceCode rust"><span id="cb71-1"><a href="#cb71-1"></a><span class="kw">pub</span> <span class="kw">struct</span> I32Add<span class="op">;</span></span>
+<span id="cb71-2"><a href="#cb71-2"></a></span>
+<span id="cb71-3"><a href="#cb71-3"></a><span class="kw">impl</span> Monoid<span class="op">&lt;</span><span class="dt">i32</span><span class="op">&gt;</span> <span class="kw">for</span> I32Add <span class="op">{</span></span>
+<span id="cb71-4"><a href="#cb71-4"></a>    <span class="kw">fn</span> mzero() <span class="op">-&gt;</span> <span class="dt">i32</span> <span class="op">{</span> <span class="dv">0</span> <span class="op">}</span></span>
+<span id="cb71-5"><a href="#cb71-5"></a>    <span class="kw">fn</span> mappend(a<span class="op">:</span> <span class="op">&amp;</span><span class="dt">i32</span><span class="op">,</span> b<span class="op">:</span> <span class="op">&amp;</span><span class="dt">i32</span>) <span class="op">-&gt;</span> <span class="dt">i32</span> <span class="op">{</span> a <span class="op">+</span> b <span class="op">}</span></span>
+<span id="cb71-6"><a href="#cb71-6"></a><span class="op">}</span></span>
+<span id="cb71-7"><a href="#cb71-7"></a></span>
+<span id="cb71-8"><a href="#cb71-8"></a><span class="kw">pub</span> <span class="kw">struct</span> I32Mult<span class="op">;</span></span>
+<span id="cb71-9"><a href="#cb71-9"></a></span>
+<span id="cb71-10"><a href="#cb71-10"></a><span class="kw">impl</span> Monoid<span class="op">&lt;</span><span class="dt">i32</span><span class="op">&gt;</span> <span class="kw">for</span> I32Mult <span class="op">{</span></span>
+<span id="cb71-11"><a href="#cb71-11"></a>    <span class="kw">fn</span> mzero() <span class="op">-&gt;</span> <span class="dt">i32</span> <span class="op">{</span> <span class="dv">0</span> <span class="op">}</span></span>
+<span id="cb71-12"><a href="#cb71-12"></a>    <span class="kw">fn</span> mappend(a<span class="op">:</span> <span class="op">&amp;</span><span class="dt">i32</span><span class="op">,</span> b<span class="op">:</span> <span class="op">&amp;</span><span class="dt">i32</span>) <span class="op">-&gt;</span> <span class="dt">i32</span> <span class="op">{</span> a <span class="op">*</span> b <span class="op">}</span></span>
+<span id="cb71-13"><a href="#cb71-13"></a><span class="op">}</span></span>
+<span id="cb71-14"><a href="#cb71-14"></a></span>
+<span id="cb71-15"><a href="#cb71-15"></a><span class="kw">let</span> res <span class="op">=</span> <span class="pp">reduce::</span><span class="op">&lt;</span>_<span class="op">,</span> I32Mult<span class="op">,</span> _<span class="op">&gt;</span>(vec<span class="op">.</span>into_iter())</span></code></pre></div>
+</div>
+<div id="io-capabilities" class="slide section level1">
+<h1>IO Capabilities</h1>
+<ul class="incremental">
+<li><p>There are a couple other categories of operation that we want to think about that violate the Principle of Least Power</p>
+<ul class="incremental">
+<li><p>Low-level IO operations (and the high-level ops built on them)</p></li>
+<li><p>Mutation</p></li>
+</ul></li>
+</ul>
+</div>
+<div id="io-capabilities-1" class="slide section level1">
+<h1>IO Capabilities</h1>
+<div class="sourceCode" id="cb72"><pre class="sourceCode rust"><code class="sourceCode rust"><span id="cb72-1"><a href="#cb72-1"></a><span class="kw">trait</span> Clock <span class="op">{</span></span>
+<span id="cb72-2"><a href="#cb72-2"></a>    <span class="kw">fn</span> now(<span class="op">&amp;</span><span class="kw">self</span>) <span class="op">-&gt;</span> <span class="pp">std::time::</span>Instant<span class="op">;</span></span>
+<span id="cb72-3"><a href="#cb72-3"></a><span class="op">}</span></span>
+<span id="cb72-4"><a href="#cb72-4"></a></span>
+<span id="cb72-5"><a href="#cb72-5"></a><span class="kw">struct</span> SystemClock<span class="op">;</span></span>
+<span id="cb72-6"><a href="#cb72-6"></a></span>
+<span id="cb72-7"><a href="#cb72-7"></a><span class="kw">impl</span> Clock <span class="kw">for</span> SystemClock <span class="op">{</span></span>
+<span id="cb72-8"><a href="#cb72-8"></a>    <span class="kw">fn</span> now(<span class="op">&amp;</span><span class="kw">self</span>) <span class="op">-&gt;</span> <span class="pp">std::Time::</span>Instant <span class="op">{</span></span>
+<span id="cb72-9"><a href="#cb72-9"></a>        <span class="pp">std::time::Instant::</span>now()</span>
+<span id="cb72-10"><a href="#cb72-10"></a>    <span class="op">}</span></span>
+<span id="cb72-11"><a href="#cb72-11"></a><span class="op">}</span></span></code></pre></div>
+<ul>
+<li><strong>NEVER</strong> use the system clock. Pass a capability!</li>
+</ul>
+<ul class="incremental">
+<li><p>The same goes for any other IO.</p></li>
+<li><p>Ideally, the same for access to mutable variables.</p></li>
+<li><p>Make it possible to know everything that a procedure can do simply by looking at its inputs.</p></li>
+</ul>
+</div>
+<div id="final-principles-to-code-by" class="slide section level1">
+<h1>Final principles to code by</h1>
+<ul class="incremental">
+<li>Make invalid states unrepresentable.</li>
+<li>Give the minimum possible power to a function’s implementer, and the maximum possible flexibility to its caller. Least Power!</li>
+<li>Type polymorphism reduces the number of things a function can possibly do. Use it.</li>
+<li>Strings should appear in your program only where they’re being show to a human being.</li>
+</ul>
+</div>
+<div id="extra-bonus-quiz" class="slide section level1">
+<h1>Extra bonus quiz!</h1>
+<div class="sourceCode" id="cb73"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb73-1"><a href="#cb73-1"></a><span class="kw">type</span> <span class="dt">T</span> a b <span class="ot">=</span> <span class="kw">forall</span> c<span class="op">.</span> (a <span class="ot">-&gt;</span> b <span class="ot">-&gt;</span> c) <span class="ot">-&gt;</span> c</span>
+<span id="cb73-2"><a href="#cb73-2"></a></span>
+<span id="cb73-3"><a href="#cb73-3"></a><span class="kw">type</span> <span class="dt">E</span> a b <span class="ot">=</span> <span class="kw">forall</span> c<span class="op">.</span> (a <span class="ot">-&gt;</span> c) <span class="ot">-&gt;</span> (b <span class="ot">-&gt;</span> c) <span class="ot">-&gt;</span> c</span></code></pre></div>
+<div class="sourceCode" id="cb74"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb74-1"><a href="#cb74-1"></a><span class="op">|</span><span class="dt">T</span> <span class="dt">Bool</span> <span class="dt">Int32</span><span class="op">|</span></span>
+<span id="cb74-2"><a href="#cb74-2"></a></span>
+<span id="cb74-3"><a href="#cb74-3"></a><span class="op">|</span><span class="dt">E</span> <span class="dt">Bool</span> <span class="dt">Int32</span><span class="op">|</span></span></code></pre></div>
+</div>
+<div id="extra-bonus-quiz-1" class="slide section level1">
+<h1>Extra bonus quiz!</h1>
+<div class="sourceCode" id="cb75"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb75-1"><a href="#cb75-1"></a><span class="kw">type</span> <span class="dt">T</span> a b <span class="ot">=</span> <span class="kw">forall</span> c<span class="op">.</span> (a <span class="ot">-&gt;</span> b <span class="ot">-&gt;</span> c) <span class="ot">-&gt;</span> c</span>
+<span id="cb75-2"><a href="#cb75-2"></a></span>
+<span id="cb75-3"><a href="#cb75-3"></a><span class="kw">type</span> <span class="dt">E</span> a b <span class="ot">=</span> <span class="kw">forall</span> c<span class="op">.</span> (a <span class="ot">-&gt;</span> c) <span class="ot">-&gt;</span> (b <span class="ot">-&gt;</span> c) <span class="ot">-&gt;</span> c</span></code></pre></div>
+<div class="sourceCode" id="cb76"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb76-1"><a href="#cb76-1"></a><span class="op">|</span><span class="dt">T</span> <span class="dt">Bool</span> <span class="dt">Int32</span><span class="op">|</span> <span class="op">==</span> <span class="dv">2</span> <span class="op">*</span> <span class="dv">2</span><span class="op">^</span><span class="dv">32</span> <span class="ot">=</span> <span class="dv">2</span><span class="op">^</span><span class="dv">33</span></span>
+<span id="cb76-2"><a href="#cb76-2"></a></span>
+<span id="cb76-3"><a href="#cb76-3"></a><span class="op">|</span><span class="dt">E</span> <span class="dt">Bool</span> <span class="dt">Int32</span><span class="op">|</span> <span class="op">==</span> <span class="dv">2</span> <span class="op">+</span> <span class="dv">2</span><span class="op">^</span><span class="dv">32</span></span></code></pre></div>
+</div>
+<div id="extra-bonus-quiz-rustlang-edition" class="slide section level1">
+<h1>Extra bonus quiz (Rustlang Edition)</h1>
+<div class="sourceCode" id="cb77"><pre class="sourceCode rust"><code class="sourceCode rust"><span id="cb77-1"><a href="#cb77-1"></a><span class="kw">trait</span> T<span class="op">&lt;</span>A<span class="op">,</span> B<span class="op">&gt;</span> <span class="op">{</span></span>
+<span id="cb77-2"><a href="#cb77-2"></a>    <span class="kw">fn</span> cata<span class="op">&lt;</span>F<span class="op">,</span> C<span class="op">&gt;</span>(<span class="op">&amp;</span><span class="kw">self</span><span class="op">,</span> f<span class="op">:</span> F) <span class="op">-&gt;</span> C</span>
+<span id="cb77-3"><a href="#cb77-3"></a>        <span class="kw">where</span> F<span class="op">:</span> <span class="bu">FnOnce</span>(<span class="op">&amp;</span>A<span class="op">,</span> <span class="op">&amp;</span>B) <span class="op">-&gt;</span> C<span class="op">;</span></span>
+<span id="cb77-4"><a href="#cb77-4"></a><span class="op">}</span></span></code></pre></div>
+<div class="sourceCode" id="cb78"><pre class="sourceCode rust"><code class="sourceCode rust"><span id="cb78-1"><a href="#cb78-1"></a><span class="kw">trait</span> E<span class="op">&lt;</span>A<span class="op">,</span> B<span class="op">&gt;</span> <span class="op">{</span></span>
+<span id="cb78-2"><a href="#cb78-2"></a>    <span class="kw">fn</span> cata<span class="op">&lt;</span>L<span class="op">,</span> R<span class="op">,</span> C<span class="op">&gt;</span>(<span class="op">&amp;</span><span class="kw">self</span><span class="op">,</span> l<span class="op">:</span> L<span class="op">,</span> r<span class="op">:</span> R) <span class="op">-&gt;</span> C</span>
+<span id="cb78-3"><a href="#cb78-3"></a>        <span class="kw">where</span> L<span class="op">:</span> <span class="bu">FnOnce</span>(<span class="op">&amp;</span>A) <span class="op">-&gt;</span> C<span class="op">,</span></span>
+<span id="cb78-4"><a href="#cb78-4"></a>              R<span class="op">:</span> <span class="bu">FnOnce</span>(<span class="op">&amp;</span>B) <span class="op">-&gt;</span> C<span class="op">;</span></span>
+<span id="cb78-5"><a href="#cb78-5"></a><span class="op">}</span></span></code></pre></div>
+</div>
+</body>
+</html>
