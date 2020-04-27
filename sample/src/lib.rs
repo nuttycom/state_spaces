@@ -1,4 +1,5 @@
 use std::marker::PhantomData;
+use std::collections::HashMap;
 
 trait Tuple<A, B> {
     fn cata<F, C>(&self, f: F) -> C
@@ -131,4 +132,16 @@ pub mod monoid {
     }
 }
 
+enum JValue {
+  JBool(bool),
+  JNum(f64),
+  JStr(String),
+  JNull,
+  JArray(Vec<JValue>),
+  JObject(HashMap<String, JValue>),
+}
+
+struct JNull {}
+
+type JValue0 = Either<bool, Either<f64, Either<String, Either<JNull, Either<Vec<JValue>, HashMap<String, JValue>>>>>>;
 

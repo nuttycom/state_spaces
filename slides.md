@@ -48,10 +48,25 @@ how we think about the programs that we're writing.
 * Types and the state space of programs
     * Sum and product types
     * Functions
+
 * Types as sets of capabilities
     * Newtypes
     * A basic introduction to parametricity.
     * IO capabilities and mocking
+
+* *This presentation is meant to be interactive.*
+
+# Terminology
+
+Function
+: A transformation on data that maps inputs to outputs. Given the same input,
+  a function will always produce the same output, and the state of the universe
+  will be the same after the function has been evaluated as before. Just a
+  fact that relates some types to one another.
+
+Procedure
+: Instructions for a computer to make some change to the state of the universe
+  and/or return a value, given some inputs and the ambient state of the universe.
 
 # Types as state spaces
 
@@ -117,28 +132,38 @@ and denote it |T|, so |bool| == 2
 # Cardinality
 
 ~~~rust
-|(bool, u32)| == 2 * 2^32 == 2^33
+|(bool, u32)| == 2 * 2^32 
 ~~~
 
 # Cardinality
 
 ~~~rust
-|(bool, u32)| == 2 * 2^32 == 2^33
+|(bool, u32)| == 2 * 2^32 
+~~~
+
+~~~rust
+|(u32, u32)| == 2^32 * 2^32 == 2^64
+~~~
+
+# Cardinality
+
+~~~rust
+|(bool, u32)| == 2 * 2^32
+~~~
+
+~~~rust
+|(u32, u32)| == 2^32 * 2^32 == 2^64
 ~~~
 
 ~~~rust
 |(A, B)| == A * B
 ~~~
 
+We refer to tuple-like or struct-like types as **product types**. The
+2-tuple is the fundamental product type; larger products can be built
+from 2-tuples.
+
 # Cardinality
-
-~~~rust
-|(bool, u32)| == 2 * 2^32 == 2^33
-~~~
-
-~~~rust
-|(A, B)| == A * B
-~~~
 
 ~~~rust
 |Either<bool, u32>|
@@ -147,26 +172,10 @@ and denote it |T|, so |bool| == 2
 # Cardinality
 
 ~~~rust
-|(bool, u32)| == 2 * 2^32 == 2^33
-~~~
-
-~~~rust
-|(A, B)| == A * B
-~~~
-
-~~~rust
 |Either<bool, u32>| == 2 + 2^32
 ~~~
 
 # Cardinality
-
-~~~rust
-|(bool, u32)| == 2 * 2^32 == 2^33
-~~~
-
-~~~rust
-|(A, B)| == A * B
-~~~
 
 ~~~rust
 |Either<bool, u32>| == 2 + 2^32
@@ -176,15 +185,10 @@ and denote it |T|, so |bool| == 2
 |Either<A, B>| == A + B
 ~~~
 
+We refer to Either-like types as **sum types**. Either is the fundamental
+sum type; larger sums can be built from nested Eithers.
+
 # Cardinality
-
-~~~rust
-|(bool, u32)| == 2 * 2^32 == 2^33
-~~~
-
-~~~rust
-|(A, B)| == A * B
-~~~
 
 ~~~rust
 |Either<bool, u32>| == 2 + 2^32
@@ -194,18 +198,21 @@ and denote it |T|, so |bool| == 2
 |Either<A, B>| == A + B
 ~~~
 
-* We refer to tuple-or struct-like types as **product types** and Either- or
-  Enum-like types as **sum types**.
+We refer to Either-like types as **sum types**. Either is the fundamental
+sum type; larger sums can be built from nested Eithers.
+
+~~~rust
+enum JValue {
+  JBool(bool),
+  JNum(f64),
+  JStr(String),
+  JNull,
+  JArray(Vec<JValue>),
+  JObject(HashMap<String, JValue>),
+}
+~~~
 
 # Cardinality
-
-~~~rust
-|(bool, u32)| == 2 * 2^32 == 2^33
-~~~
-
-~~~rust
-|(A, B)| == A * B
-~~~
 
 ~~~rust
 |Either<bool, u32>| == 2 + 2^32
@@ -215,8 +222,35 @@ and denote it |T|, so |bool| == 2
 |Either<A, B>| == A + B
 ~~~
 
-* We refer to tuple-or struct-like types as **product types** and Either- or
-  Enum-like types as **sum types**.
+We refer to Either-like types as **sum types**. Either is the fundamental
+sum type; larger sums can be built from nested Eithers.
+
+~~~rust
+enum JValue {
+  JBool(bool),
+  JNum(f64),
+  JStr(String),
+  JNull,
+  JArray(Vec<JValue>),
+  JObject(HashMap<String, JValue>),
+}
+~~~
+
+~~~rust
+type JValue = 
+  Either<bool, 
+    Either<f64, 
+      Either<String, 
+        Either<JNull, 
+          Either<Vec<JValue>, 
+                 HashMap<String, JValue>>>>>>;
+~~~
+
+# Cardinality
+
+~~~rust
+|(bool, u32)| == 2 * 2^32 
+~~~
 
 ~~~rust
 |Either<u32, u32>|
@@ -225,27 +259,28 @@ and denote it |T|, so |bool| == 2
 # Cardinality
 
 ~~~rust
+|(bool, u32)| == 2 * 2^32
+~~~
+
+~~~rust
+|Either<u32, u32>| == 2^32 + 2^32
+~~~
+
+# Cardinality
+
+~~~rust
 |(bool, u32)| == 2 * 2^32 == 2^33
 ~~~
 
 ~~~rust
-|(A, B)| == A * B
-~~~
-
-~~~rust
-|Either<bool, u32>| == 2 + 2^32
-~~~
-
-~~~rust
-|Either<A, B>| == A + B
-~~~
-
-* We refer to tuple-or struct-like types as **product types** and Either- or
-  Enum-like types as **sum types**.
-
-~~~rust
 |Either<u32, u32>| == 2^32 + 2^32 == 2^33
 ~~~
+
+These occupy the same state space, so they are isomorphic. However,
+their implications in terms of program safety are rather different.
+
+You can forget to check a boolean flag, but the compiler won't let
+you forget to analyze a variant (constructor).
 
 # Cardinality
 
@@ -482,11 +517,12 @@ but if it supports the operations that we need, we don't really care.
 >   violate those constraints in the first place.
 >
 > * ~~~rust
->   fn parseIpAddr(s: String): Result<IpAddr>;
+>   fn parseIpAddr(s: String): Result<IpAddr, ParseError>;
 >   ~~~
 >
-> * We reduce a set with infinite cardinality to (2^32 + |Error|) - and if
->   `Error` is also a well-formed sum type, its cardinality will be small.
+> * We reduce a set with infinite cardinality and infinite operations to 
+>   (2^32 + |ParseError|) with a restricted set of operations - and if 
+>   `ParseError` is also a well-formed sum type, its cardinality will be small.
 
 # The Vampire Policy
 
@@ -504,8 +540,48 @@ but if it supports the operations that we need, we don't really care.
 fn identity<A>(a: &A): &A
 ~~~
 
-> * `<A>` is properly pronounced "forall a."
->
+# Parametricity
+
+~~~rust
+fn identity<A>(a: &A): &A
+~~~
+
+~~~rust
+|identity| == ∞ ^ 0 == 1
+~~~
+
+# Parametricity
+
+~~~rust
+fn identity<A>(a: &A): &A
+~~~
+
+~~~rust
+|identity| == ∞ ^ 0 == 1
+~~~
+
+~~~rust
+fn absurd<A>(): &A
+~~~
+
+# Parametricity
+
+~~~rust
+fn identity<A>(a: &A): &A
+~~~
+
+~~~rust
+|identity| == ∞ ^ 0 == 1
+~~~
+
+~~~rust
+fn absurd<A>(): &A
+~~~
+
+~~~rust
+|absurd| == ∞ ^ 1 == ∞ 
+~~~
+
 > * Parametricity allows us to forbid the implementation of a function
 >   from performing any operations on a value for which we were not
 >   explicitly provided a capability.
@@ -522,6 +598,26 @@ fn identity<A>(a: &A): &A
 trait Monoidal {
     fn mzero() -> Self;
     fn mappend(&self, b: &Self) -> Self;
+}
+~~~
+
+# Parametricity
+
+~~~rust
+trait Monoidal {
+    fn mzero() -> Self;
+    fn mappend(&self, b: &Self) -> Self;
+}
+~~~
+
+~~~rust
+fn reduce<A: Monoidal>(vs: &Vec<A>) -> A {
+
+
+
+
+
+
 }
 ~~~
 
@@ -630,12 +726,20 @@ let res = reduce::<_, I32Mult, _>(vec.into_iter())
 
 # IO Capabilities
 
-> * There are a couple other categories of operation that we want
->   to think about that violate the Principle of Least Power
->
->   * Low-level IO operations (and the high-level ops built on them)
->
->   * Mutation
+There is another other big category of operation that we want
+to think about where we need to respect the Principle of Least Power:
+
+**Low-level IO operations (and the high-level ops built on them)**
+
+<div class="notes">
+Most languages expose operations - for accessing the filesystem,
+network interfaces, etc. etc. - that require no referent or capability
+to access. So, as a matter of discipline, we want to fix this in the
+code that *we* write, so that we can have more control over how the
+procedures that we write behave.
+
+The example that I always use is... the system clock.
+</div>
 
 # IO Capabilities
 
@@ -651,6 +755,8 @@ impl Clock for SystemClock {
         std::time::Instant::now()
     }
 }
+
+fn acceptToMemoryPool<C: Clock>(clock: C, pool: TxMemPool, ...) -> ...
 ~~~
 
 * **NEVER** use the system clock. Pass a capability!
@@ -661,8 +767,37 @@ impl Clock for SystemClock {
 >
 > * Make it possible to know everything that a procedure can do simply
 >   by looking at its inputs.
+> 
+> * Incidentally, this also makes unit testing vastly easier. Pass mock
+>   implementations to procedures under unit testing.
 
-# Final principles to code by
+# IO Capabilities
+
+* A caveat: a capability interface should reflect **domain concerns**,
+  not implementation concerns.
+
+**BAD**
+
+~~~rust
+trait FileCap {
+  fn fopen(path: &str, mode: FileMode): Result<Handle>
+}
+
+fn getTransaction<F: FileCap>(fileCap: &F, hash: &u256, ...) -> ...
+~~~
+
+**GOOD**
+
+~~~rust
+trait BlockSource {
+  fn readBlock(idx: &BlockIndex) -> Result<Block>
+}
+
+fn getTransaction<B: BlockSource>(blockSource: &B, hash: &u256, ...) -> ...
+~~~
+
+
+# Final principles 
 
 > - Make invalid states unrepresentable.
 > - Give the minimum possible power to a function's implementer, and the maximum possible flexibility to its caller. Least Power!
