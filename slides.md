@@ -285,6 +285,24 @@ you forget to analyze a variant (constructor).
 # Cardinality
 
 ~~~rust
+// rust
+
+enum Maybe<A> {
+  Nothing,
+  Just(A),
+}
+~~~
+
+~~~rust
+|Maybe<A>| = |A| + 1
+~~~
+
+Without sum types, it can be difficult to accurately represent a
+type that has exactly `|A| + 1` inhabitants.
+
+# Cardinality
+
+~~~rust
 |Fn(bool) -> u32|
 ~~~
 
